@@ -6,77 +6,141 @@ interface Skill {
 }
 
 const skillsData: Skill[] = [
+  // 星5（経験3年）
   {
-    name: "JavaScript",
-    icon: "javascript",
-    experience: "経験 5年以上",
-    rating: 4,
-  },
-  {
-    name: "TypeScript",
-    icon: "type_script",
+    name: "HTML5",
+    icon: "html5",
     experience: "経験 3年以上",
-    rating: 4,
+    rating: 5,
   },
   {
-    name: "PHP",
-    icon: "php",
-    experience: "経験 4年以上",
+    name: "CSS3",
+    icon: "css3",
+    experience: "経験 3年以上",
     rating: 5,
   },
   {
     name: "Laravel",
     icon: "laravel",
-    experience: "経験 4年以上",
-    rating: 5,
-  },
-  {
-    name: "Vue.js",
-    icon: "vue_js",
-    experience: "経験 3年以上",
-    rating: 5,
-  },
-  {
-    name: "Inertia.js",
-    icon: "inertia",
-    experience: "経験 3年以上",
+    experience: "経験 2年以上",
     rating: 5,
   },
   {
     name: "Filament",
     icon: "filament",
     experience: "経験 2年以上",
-    rating: 4,
-  },
-  {
-    name: "React / Next.js",
-    icon: "react",
-    experience: "経験 4年以上",
     rating: 5,
   },
   {
-    name: "Tailwind CSS",
-    icon: "tailwind",
+    name: "Livewire",
+    icon: "livewire",
+    experience: "経験 2年以上",
+    rating: 5,
+  },
+  {
+    name: "Vue.js",
+    icon: "vue_js",
+    experience: "経験 2年以上",
+    rating: 5,
+  },
+  {
+    name: "jQuery",
+    icon: "jquery",
     experience: "経験 3年以上",
     rating: 5,
   },
   {
-    name: "Node.js",
-    icon: "node_js",
-    experience: "経験 4年以上",
+    name: "PHP",
+    icon: "php",
+    experience: "経験 3年以上",
+    rating: 5,
+  },
+  // 星4
+  {
+    name: "Inertia",
+    icon: "inertia",
+    experience: "経験 2年以上",
     rating: 4,
   },
   {
-    name: "Git & GitHub",
-    icon: "git",
-    experience: "経験 5年以上",
-    rating: 5,
+    name: "Alpine.js",
+    icon: "alpine",
+    experience: "経験 2年以上",
+    rating: 4,
   },
   {
-    name: "Docker",
-    icon: "docker",
-    experience: "経験 3年",
+    name: "WordPress",
+    icon: "wordpress",
+    experience: "経験 2年以上",
+    rating: 4,
+  },
+  {
+    name: "GitHub",
+    icon: "github",
+    experience: "経験 2年以上",
+    rating: 4,
+  },
+  {
+    name: "GitLab",
+    icon: "gitlab",
+    experience: "経験 2年以上",
+    rating: 4,
+  },
+  {
+    name: "Stripe",
+    icon: "stripe",
+    experience: "経験 2年以上",
+    rating: 4,
+  },
+  // 星3（経験2年）
+  {
+    name: "Tailwind CSS",
+    icon: "tailwind",
+    experience: "経験 2年",
     rating: 3,
+  },
+  {
+    name: "Firebase",
+    icon: "firebase",
+    experience: "経験 2年",
+    rating: 3,
+  },
+  {
+    name: "JavaScript",
+    icon: "javascript",
+    experience: "経験 2年",
+    rating: 3,
+  },
+  {
+    name: "HubSpot API",
+    icon: "hubspot",
+    experience: "経験 2年",
+    rating: 3,
+  },
+  {
+    name: "Google API",
+    icon: "google_api",
+    experience: "経験 2年",
+    rating: 3,
+  },
+  // 星2
+  {
+    name: "React.js",
+    icon: "react",
+    experience: "経験 1年以上",
+    rating: 2,
+  },
+  {
+    name: "Next.js",
+    icon: "nextjs",
+    experience: "経験 1年以上",
+    rating: 2,
+  },
+  {
+    name: "Amazon Chime",
+    icon: "amazon_chime",
+    experience: "経験 1年以上",
+    rating: 2,
   },
 ];
 
@@ -100,18 +164,28 @@ const StarRating = ({ rating }: { rating: number }) => {
 const SkillCard = ({ skill }: { skill: Skill }) => {
   // Material Symbolsアイコンマッピング（より適切なアイコンに変更）
   const iconMap: Record<string, string> = {
-    javascript: "code", // JavaScript
-    type_script: "code_blocks", // TypeScript
-    php: "terminal", // PHP
+    html5: "code", // HTML5
+    css3: "style", // CSS3
     laravel: "settings_applications", // Laravel
-    vue_js: "view_module", // Vue.js
-    inertia: "sync_alt", // Inertia.js
     filament: "dashboard_customize", // Filament
-    react: "web", // React
+    livewire: "bolt", // Livewire
+    vue_js: "view_module", // Vue.js
+    jquery: "code_blocks", // jQuery
+    php: "terminal", // PHP
+    inertia: "sync_alt", // Inertia
+    alpine: "flash_on", // Alpine.js
+    wordpress: "article", // WordPress
     tailwind: "palette", // Tailwind CSS
-    node_js: "dns", // Node.js
-    git: "account_tree", // Git & GitHub
-    docker: "deployed_code", // Docker
+    firebase: "local_fire_department", // Firebase
+    javascript: "code", // JavaScript
+    hubspot: "hub", // HubSpot API
+    google_api: "api", // Google API
+    github: "account_tree", // GitHub
+    gitlab: "storage", // GitLab
+    stripe: "payments", // Stripe
+    amazon_chime: "videocam", // Amazon Chime
+    react: "web", // React.js
+    nextjs: "arrow_forward", // Next.js
   };
 
   const iconName = iconMap[skill.icon] || skill.icon;
@@ -158,4 +232,5 @@ export const SkillsContentSection = (): JSX.Element => {
     </main>
   );
 };
+
 

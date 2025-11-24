@@ -14,31 +14,146 @@
   import { ScrollArea, ScrollBar } from "../../../../components/ui/scroll-area";
   import { Textarea } from "../../../../components/ui/textarea";
   
+  // Material Symbolsアイコンマッピング
+  const skillIconMap: Record<string, string> = {
+    html5: "code",
+    css3: "style",
+    laravel: "settings_applications",
+    filament: "dashboard_customize",
+    livewire: "bolt",
+    vue_js: "view_module",
+    jquery: "code_blocks",
+    php: "terminal",
+    inertia: "sync_alt",
+    alpine: "flash_on",
+    wordpress: "article",
+    tailwind: "palette",
+    firebase: "local_fire_department",
+    javascript: "code",
+    hubspot: "hub",
+    google_api: "api",
+    github: "account_tree",
+    gitlab: "storage",
+    stripe: "payments",
+    amazon_chime: "videocam",
+    react: "web",
+    nextjs: "arrow_forward",
+  };
+
   const skillsData = [
+    // 星5（先頭に配置）
     {
-      name: "React",
-      icon: "https://c.animaapp.com/micu87i2SXE1a3/img/react-icon.png",
+      name: "HTML5",
+      iconKey: "html5",
       rating: 5,
     },
     {
-      name: "TypeScript",
-      icon: "https://c.animaapp.com/micu87i2SXE1a3/img/typescript-icon.png",
+      name: "CSS3",
+      iconKey: "css3",
+      rating: 5,
+    },
+    {
+      name: "Laravel",
+      iconKey: "laravel",
+      rating: 5,
+    },
+    {
+      name: "Filament",
+      iconKey: "filament",
+      rating: 5,
+    },
+    {
+      name: "Livewire",
+      iconKey: "livewire",
+      rating: 5,
+    },
+    {
+      name: "Vue.js",
+      iconKey: "vue_js",
+      rating: 5,
+    },
+    {
+      name: "jQuery",
+      iconKey: "jquery",
+      rating: 5,
+    },
+    {
+      name: "PHP",
+      iconKey: "php",
+      rating: 5,
+    },
+    // 星4
+    {
+      name: "Inertia",
+      iconKey: "inertia",
       rating: 4,
     },
     {
+      name: "Alpine.js",
+      iconKey: "alpine",
+      rating: 4,
+    },
+    {
+      name: "WordPress",
+      iconKey: "wordpress",
+      rating: 4,
+    },
+    {
+      name: "GitHub",
+      iconKey: "github",
+      rating: 4,
+    },
+    {
+      name: "GitLab",
+      iconKey: "gitlab",
+      rating: 4,
+    },
+    {
+      name: "Stripe",
+      iconKey: "stripe",
+      rating: 4,
+    },
+    // 星3
+    {
       name: "Tailwind CSS",
-      icon: "https://c.animaapp.com/micu87i2SXE1a3/img/tailwind-css-icon.png",
-      rating: 5,
+      iconKey: "tailwind",
+      rating: 3,
     },
     {
-      name: "Node.js",
-      icon: "https://c.animaapp.com/micu87i2SXE1a3/img/node-js-icon.png",
-      rating: 5,
+      name: "Firebase",
+      iconKey: "firebase",
+      rating: 3,
     },
     {
-      name: "AWS",
-      icon: "https://c.animaapp.com/micu87i2SXE1a3/img/aws-icon.png",
-      rating: 5,
+      name: "JavaScript",
+      iconKey: "javascript",
+      rating: 3,
+    },
+    {
+      name: "HubSpot API",
+      iconKey: "hubspot",
+      rating: 3,
+    },
+    {
+      name: "Google API",
+      iconKey: "google_api",
+      rating: 3,
+    },
+    // 星2
+    {
+      name: "React.js",
+      iconKey: "react",
+      rating: 2,
+    },
+    {
+      name: "Next.js",
+      iconKey: "nextjs",
+      rating: 2,
+    },
+    {
+      name: "Amazon Chime",
+      iconKey: "amazon_chime",
+      rating: 2,
     },
   ];
   
@@ -594,31 +709,26 @@
                     className="flex-shrink-0 w-[140px] sm:w-[180px] bg-[#1f293780] border-0 rounded-xl hover:bg-[#1f2937a0] transition-colors"
                   >
                     <CardContent className="flex flex-col items-center p-4 gap-2">
-                      <div
-                        className="w-12 h-12 bg-cover bg-center"
-                        style={{ backgroundImage: `url(${skill.icon})` }}
-                      />
+                      <div className="w-12 h-12 flex items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <span className="material-symbols-outlined !text-3xl">
+                          {skillIconMap[skill.iconKey] || "code"}
+                        </span>
+                      </div>
   
                       <p className="[font-family:'Inter',Helvetica] font-normal text-gray-200 text-sm sm:text-base tracking-[0] leading-6 text-center">
                         {skill.name}
                       </p>
   
-                      <div className="flex items-center gap-0">
-                        {Array.from({ length: 5 }).map((_, starIndex) => (
-                          <div
-                            key={starIndex}
-                            className="w-6 h-[29px] flex items-center justify-center"
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: 5 }).map((_, index) => (
+                          <span
+                            key={index}
+                            className={`material-symbols-outlined ${
+                              index < skill.rating ? "fill text-star-filled" : "text-star-empty"
+                            }`}
                           >
-                            <img
-                              className="w-5 h-[19px]"
-                              alt="Star"
-                              src={
-                                starIndex < skill.rating
-                                  ? "https://c.animaapp.com/micu87i2SXE1a3/img/vector-2.svg"
-                                  : "https://c.animaapp.com/micu87i2SXE1a3/img/vector-28.svg"
-                              }
-                            />
-                          </div>
+                            star
+                          </span>
                         ))}
                       </div>
                     </CardContent>
