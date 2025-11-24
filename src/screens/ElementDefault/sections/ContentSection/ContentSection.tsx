@@ -4,7 +4,8 @@
     LinkedinIcon,
     TwitterIcon,
   } from "lucide-react";
-  import { useState, FormEvent, useEffect } from "react";
+  import { useState, FormEvent, useEffect, useRef } from "react";
+  import { useLocation } from "react-router-dom";
   import { Badge } from "../../../../components/ui/badge";
   import { Button } from "../../../../components/ui/button";
   import { Card, CardContent } from "../../../../components/ui/card";
@@ -117,7 +118,49 @@
     message?: string;
   }
 
+  // タイピングエフェクト用のカスタムフック
+  const useTypingEffect = (text: string, speed: number = 50) => {
+    const [displayedText, setDisplayedText] = useState(""); // 初期値は空文字列（非表示）
+    const isTypingRef = useRef(false);
+    const hasStartedRef = useRef(false);
+    const indexRef = useRef(0);
+    const timeoutRef = useRef<number | null>(null);
+
+    const startTyping = () => {
+      if (isTypingRef.current || hasStartedRef.current) return;
+      
+      hasStartedRef.current = true;
+      isTypingRef.current = true;
+      setDisplayedText("");
+      indexRef.current = 0;
+
+      const type = () => {
+        if (indexRef.current < text.length) {
+          setDisplayedText(text.slice(0, indexRef.current + 1));
+          indexRef.current += 1;
+          timeoutRef.current = window.setTimeout(type, speed);
+        } else {
+          isTypingRef.current = false;
+        }
+      };
+
+      type();
+    };
+
+    // クリーンアップ
+    useEffect(() => {
+      return () => {
+        if (timeoutRef.current !== null) {
+          window.clearTimeout(timeoutRef.current);
+        }
+      };
+    }, []);
+
+    return { displayedText, startTyping };
+  };
+
   export const ContentSection = (): JSX.Element => {
+    const location = useLocation();
     const [formData, setFormData] = useState<FormData>({
       name: "",
       email: "",
@@ -127,6 +170,14 @@
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
     const [honeypot, setHoneypot] = useState(""); // ハニーポット（迷惑メール対策）
+    
+    // タイピングエフェクト用の状態
+    const aboutSectionRef = useRef<HTMLDivElement>(null);
+    const hasAnimatedRef = useRef(false);
+    const nameText = "後藤　正文";
+    const titleText = "Frontend Developer & Backend Developer | Markup Engineer";
+    const nameTyping = useTypingEffect(nameText, 80);
+    const titleTyping = useTypingEffect(titleText, 30);
 
     // reCAPTCHA v3のサイトキー（環境変数から取得、デフォルトは空）
     const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || "";
@@ -154,6 +205,107 @@
         console.warn("reCAPTCHA site key is not set. Please check your .env file and restart the dev server.");
       }
     }, [RECAPTCHA_SITE_KEY]);
+
+    // タイピングエフェクトを開始する関数
+    const startTypingAnimation = () => {
+      if (hasAnimatedRef.current) return;
+      
+      hasAnimatedRef.current = true;
+      // 少し遅延させてからタイピングエフェクトを開始
+      setTimeout(() => {
+        nameTyping.startTyping();
+        // 名前のタイピングが終わってからタイトルを開始（名前の文字数 × 速度 + 余裕）
+        const nameTypingDuration = nameText.length * 80 + 200;
+        setTimeout(() => {
+          titleTyping.startTyping();
+        }, nameTypingDuration);
+      }, 300);
+    };
+
+    // Intersection Observerでタイピングエフェクトを開始
+    useEffect(() => {
+      if (!aboutSectionRef.current || hasAnimatedRef.current) return;
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting && !hasAnimatedRef.current) {
+              // 要素が画面の40%の位置に来たかを確認
+              const rect = entry.boundingClientRect;
+              const viewportHeight = window.innerHeight;
+              const elementTop = rect.top;
+              const elementVisibleHeight = viewportHeight - elementTop;
+              const visibleRatio = elementVisibleHeight / viewportHeight;
+              
+              if (visibleRatio >= 0.4) {
+                startTypingAnimation();
+              }
+            }
+          });
+        },
+        {
+          threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5], // 複数の閾値を設定
+          rootMargin: "0px",
+        }
+      );
+
+      observer.observe(aboutSectionRef.current);
+
+      return () => {
+        observer.disconnect();
+      };
+    }, []);
+
+    // ハッシュ変更（ヘッダークリック）を検知してタイピングエフェクトを開始
+    useEffect(() => {
+      const checkAndStartAnimation = () => {
+        if (hasAnimatedRef.current || !aboutSectionRef.current) return;
+        
+        const hash = location.hash || window.location.hash;
+        if (hash === "#about") {
+          // スクロール完了を待つ
+          setTimeout(() => {
+            const element = aboutSectionRef.current;
+            if (element) {
+              const rect = element.getBoundingClientRect();
+              const viewportHeight = window.innerHeight;
+              const elementTop = rect.top;
+              const elementVisibleHeight = viewportHeight - elementTop;
+              const visibleRatio = elementVisibleHeight / viewportHeight;
+              
+              // 要素が画面の40%の位置に来たかを確認
+              if (visibleRatio >= 0.4 && !hasAnimatedRef.current) {
+                startTypingAnimation();
+              }
+            }
+          }, 600);
+        }
+      };
+
+      // 初回ロード時とハッシュ変更時を検知
+      if (typeof window !== "undefined") {
+        checkAndStartAnimation();
+        
+        // スクロールイベントも監視（ヘッダークリック後のスクロール完了を検知）
+        const handleScroll = () => {
+          checkAndStartAnimation();
+        };
+
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        
+        // ハッシュ変更を監視
+        const handleHashChange = () => {
+          checkAndStartAnimation();
+        };
+        
+        window.addEventListener("hashchange", handleHashChange);
+
+        return () => {
+          window.removeEventListener("scroll", handleScroll);
+          window.removeEventListener("hashchange", handleHashChange);
+        };
+      }
+    }, [location.hash]);
 
     const validateForm = (): boolean => {
       const newErrors: FormErrors = {};
@@ -197,30 +349,67 @@
       try {
         // reCAPTCHA v3の実行
         let recaptchaToken = "";
-        if (RECAPTCHA_SITE_KEY && window.grecaptcha) {
+        if (RECAPTCHA_SITE_KEY) {
+          // reCAPTCHAが読み込まれるまで待つ
+          if (!window.grecaptcha) {
+            console.error("reCAPTCHA not loaded");
+            throw new Error("reCAPTCHAが読み込まれていません。しばらく待ってから再度お試しください。");
+          }
+
           try {
+            // grecaptcha.ready()で読み込み完了を待つ
+            await new Promise<void>((resolve) => {
+              window.grecaptcha.ready(() => {
+                resolve();
+              });
+            });
+
+            console.log("reCAPTCHA ready, executing...");
             recaptchaToken = await window.grecaptcha.execute(RECAPTCHA_SITE_KEY, {
               action: "submit_contact_form",
             });
+
+            console.log("reCAPTCHA token:", recaptchaToken ? "取得成功" : "取得失敗");
+
+            if (!recaptchaToken) {
+              throw new Error("reCAPTCHAトークンの取得に失敗しました");
+            }
           } catch (recaptchaError) {
             console.error("reCAPTCHA error:", recaptchaError);
-            // reCAPTCHAが失敗しても送信は続行（オプショナル）
+            setSubmitStatus("error");
+            setTimeout(() => setSubmitStatus("idle"), 5000);
+            setIsSubmitting(false);
+            return;
           }
+        } else {
+          console.log("reCAPTCHA site key not set, skipping reCAPTCHA");
         }
 
+        // Formspreeへの送信データを準備
+        const submitData: Record<string, string> = {
+          name: formData.name,
+          email: formData.email,
+          message: formData.message,
+        };
+
+        // reCAPTCHAトークンは送信しない（Formspree側でreCAPTCHAが無効化されている場合）
+        // FormspreeでreCAPTCHAを有効にする場合は、以下のコメントを外す
+        // if (recaptchaToken) {
+        //   submitData._recaptcha = recaptchaToken;
+        // }
+
         // Formspreeへの送信
-        const response = await fetch(FORMSPREE_ENDPOINT || "https://formspree.io/f/YOUR_FORM_ID", {
+        const endpoint = FORMSPREE_ENDPOINT || "https://formspree.io/f/YOUR_FORM_ID";
+        console.log("Sending to:", endpoint);
+        console.log("Submit data:", submitData);
+        
+        const response = await fetch(endpoint, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
           },
-          body: JSON.stringify({
-            name: formData.name,
-            email: formData.email,
-            message: formData.message,
-            _recaptcha: recaptchaToken, // reCAPTCHAトークンも送信
-          }),
+          body: JSON.stringify(submitData),
         });
 
         if (response.ok) {
@@ -230,8 +419,10 @@
           // 3秒後にステータスをリセット
           setTimeout(() => setSubmitStatus("idle"), 3000);
         } else {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "送信に失敗しました");
+          const errorData = await response.json().catch(() => ({}));
+          console.error("Formspree error response:", errorData);
+          console.error("Response status:", response.status);
+          throw new Error(errorData.error || `送信に失敗しました (${response.status})`);
         }
       } catch (error) {
         console.error("Form submission error:", error);
@@ -257,13 +448,17 @@
     return (
       <section className="flex flex-col items-center px-8 py-10 w-full">
         <div className="w-full max-w-4xl flex flex-col gap-6">
-          <div className="min-h-[620px] flex flex-col items-center justify-center py-[216px] translate-y-[-1rem] animate-fade-in opacity-0">
-            <h1 className="[font-family:'Noto_Sans_JP',Helvetica] font-black text-white text-7xl text-center tracking-[-3.60px] leading-[72px] whitespace-nowrap">
-              後藤　正文
+          <div 
+            id="about" 
+            ref={aboutSectionRef}
+            className="min-h-[620px] flex flex-col items-center justify-center py-[216px] translate-y-[-1rem] animate-fade-in opacity-0"
+          >
+            <h1 className="[font-family:'Noto_Sans_JP',Helvetica] font-black text-white text-7xl text-center tracking-[0.05em] leading-[72px] whitespace-nowrap">
+              {nameTyping.displayedText}
             </h1>
   
             <p className="pt-4 [font-family:'Inter',Helvetica] font-normal text-gray-300 text-xl text-center tracking-[0] leading-7 whitespace-nowrap">
-              Frontend Developer & Backend Developer | Markup Engineer
+              {titleTyping.displayedText}
             </p>
   
             <div className="flex items-center gap-4 pt-8">
@@ -297,7 +492,7 @@
             </div>
           </div>
   
-          <div className="flex flex-col gap-6 translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:200ms]">
+          <div  className="flex flex-col gap-6 translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:200ms]">
             <h2 className="[font-family:'Noto_Sans_JP',Helvetica] font-bold text-white text-[22px] tracking-[-0.33px] leading-[27.5px]">
               自己紹介
             </h2>
@@ -406,7 +601,7 @@
             </div>
           </div>
   
-          <div className="flex flex-col gap-6 translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:800ms]">
+          <div id="works" className="flex flex-col gap-6 translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:800ms]">
             <h2 className="[font-family:'Noto_Sans_JP',Helvetica] font-bold text-white text-[22px] tracking-[-0.33px] leading-[27.5px]">
               プロジェクト
             </h2>
@@ -450,13 +645,15 @@
             </ScrollArea>
           </div>
   
-          <div className="flex flex-col gap-4 translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:1000ms]">
+          <div id="contact" className="flex flex-col gap-4 translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:1000ms]">
             <h2 className="[font-family:'Noto_Sans_JP',Helvetica] font-bold text-white text-[22px] tracking-[-0.33px] leading-[27.5px]">
               お問い合わせ
             </h2>
   
             <p className="[font-family:'Noto_Sans_JP',Helvetica] font-light text-gray-300 text-base tracking-[0] leading-6">
-              お気軽にご連絡ください。プロジェクトのご相談や技術的なディスカッションをお待ちしております。
+              お仕事のご相談、その他後質問なんでもお気軽にご連絡ください。
+              <br />
+              （このフォームはFormspreeを使用して実装されているため送信できます。）
             </p>
   
             <form onSubmit={handleSubmit} className="flex flex-col gap-4 pt-2">
@@ -527,7 +724,7 @@
               {submitStatus === "success" && (
                 <div className="p-4 bg-green-900/30 border border-green-500 rounded-md">
                   <p className="text-green-400 text-sm [font-family:'Noto_Sans_JP',Helvetica]">
-                    送信が完了しました。ありがとうございます！
+                    送信が完了しました！
                   </p>
                 </div>
               )}
